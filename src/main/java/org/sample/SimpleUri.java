@@ -1,12 +1,12 @@
 package org.sample;
 
-public class RedisURI {
+public class SimpleUri {
 
     private String host;
     private int port;
 
-    public static RedisURI create(String host, int port) {
-        RedisURI uri = new RedisURI();
+    public static SimpleUri create(String host, int port) {
+        SimpleUri uri = new SimpleUri();
         uri.setHost(host);
         uri.setPort(port);
         return uri;

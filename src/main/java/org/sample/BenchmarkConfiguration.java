@@ -59,17 +59,17 @@ public final class BenchmarkConfiguration {
         return redisConnection.contains("sentinel");
     }
 
-    List<RedisURI> getRedisUris() {
+    List<SimpleUri> getRedisUris() {
         String redisConnection = getConnectionString();
         redisConnection = redisConnection.replace("redis-sentinel://", "")
                 .replace("redis://", "");
-        List<RedisURI> uris = new ArrayList<>();
+        List<SimpleUri> uris = new ArrayList<>();
         String[] nodes = redisConnection.split(",");
         for (String node : nodes) {
             String[] hostAndPort = node.split(":");
             String host = hostAndPort[0];
             String port = hostAndPort[1];
-            RedisURI uri = RedisURI.create(host, Integer.parseInt(port));
+            SimpleUri uri = SimpleUri.create(host, Integer.parseInt(port));
             uris.add(uri);
         }
         return uris;
