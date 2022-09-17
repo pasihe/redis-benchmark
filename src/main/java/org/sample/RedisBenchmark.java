@@ -40,8 +40,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.redisson.Redisson;
-import org.redisson.api.RBucket;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
 import reactor.core.publisher.Mono;
@@ -80,14 +79,14 @@ public class RedisBenchmark {
     }
 
     @Benchmark
-    public String SimpleGet() {
+    public String redissonGet() {
         if (redisGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
             redisGetCount = 0;
         }
         redisGetCount++;
         String result = null;
         try {
-            RBucket<String> bucket = redisson.client().getBucket(String.format("Benchmark%s", redisGetCount),StringCodec.INSTANCE);
+            RBucket<String> bucket = redisson.client().getBucket(String.format(Util.KeyPrefix, redisGetCount),StringCodec.INSTANCE);
             result = bucket.get();
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,7 +95,7 @@ public class RedisBenchmark {
     }
 
     @Benchmark
-    public String SimpleSet() {
+    public String redissonSet() {
         redisSetCount++;
         String result = null;
         try {
@@ -109,9 +108,78 @@ public class RedisBenchmark {
         return result;
     }
 
+    @Benchmark
+    public String redissonAsyncGet() {
+        if (redisGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
+            redisGetCount = 0;
+        }
+        redisGetCount++;
+        String result = null;
+        try {
+            RBucket<String> bucket = redisson.client().getBucket(String.format(Util.KeyPrefix, redisGetCount),StringCodec.INSTANCE);
+            RFuture<String> future = bucket.getAsync();
+            result = future.get();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
 
     @Benchmark
-    public String lettuceSimpleAsyncGet() {
+    public String redissonAsyncSet() {
+        redisSetCount++;
+        String result = null;
+        try {
+            RBucket<String> bucket = redisson.client().getBucket(String.format("RedisSetTest%s", redisSetCount), StringCodec.INSTANCE);
+            RFuture<Void> future = bucket.setAsync(redisSetCount.toString());
+            future.get();
+            result = "ok";
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Benchmark
+    public String redissonReactiveGet() {
+        if (redisGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
+            redisGetCount = 0;
+        }
+        redisGetCount++;
+        String result = null;
+        try {
+            RedissonReactiveClient reactiveClient = redisson.client().reactive();
+            RBucketReactive<String> bucket = reactiveClient.getBucket(String.format(Util.KeyPrefix, redisGetCount),StringCodec.INSTANCE);
+            Mono<String> value = bucket.get();
+            result = value.block();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
+    @Benchmark
+    public String redissonReactiveSet() {
+        redisSetCount++;
+        String result = null;
+        try {
+            RedissonReactiveClient reactiveClient = redisson.client().reactive();
+            RBucketReactive<String> bucket = reactiveClient.getBucket(String.format("RedisSetTest%s", redisSetCount), StringCodec.INSTANCE);
+            Mono<Void> value = bucket.set(redisSetCount.toString());
+            value.block();
+            result = "ok";
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Benchmark
+    public String lettuceAsyncGet() {
         if (lettuceAsyncGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
             lettuceAsyncGetCount = 0;
         }
@@ -128,7 +196,7 @@ public class RedisBenchmark {
     }
 
     @Benchmark
-    public String lettuceSimpleAsyncSet() {
+    public String lettuceAsyncSet() {
         lettuceAsyncSetCount++;
         RedisStringAsyncCommands<String, String> async = lettuce.async();
         RedisFuture<String> future = async.set(String.format("LettuceSetAsync%s", lettuceAsyncSetCount), lettuceAsyncSetCount.toString());
@@ -142,7 +210,7 @@ public class RedisBenchmark {
     }
 
     @Benchmark
-    public String lettuceSimpleReactiveGet() {
+    public String lettuceReactiveGet() {
         if (lettuceReactiveGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
             lettuceReactiveGetCount = 0;
         }
@@ -158,7 +226,7 @@ public class RedisBenchmark {
         return result;
     }
     @Benchmark
-    public String lettuceSimpleReactiveSet() {
+    public String lettuceReactiveSet() {
         lettuceReactiveSetCount++;
         RedisStringReactiveCommands<String, String> reactive = lettuce.client().reactive();
         Mono<String> future = reactive.set(String.format("lettuceSetReactive%s", lettuceReactiveSetCount), lettuceReactiveSetCount.toString());
@@ -172,7 +240,7 @@ public class RedisBenchmark {
     }
 
     @Benchmark
-    public String jedisSimpleGet() {
+    public String jedisGet() {
         if (jedisGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
             jedisGetCount = 0;
         }
@@ -186,7 +254,7 @@ public class RedisBenchmark {
         return result;
     }
     @Benchmark
-    public String jedisSimpleSet() {
+    public String jedisSet() {
         jedisSetCount++;
         String result = null;
         try {
