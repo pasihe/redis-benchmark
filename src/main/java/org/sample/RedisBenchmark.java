@@ -33,6 +33,7 @@ package org.sample;
 
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisStringAsyncCommands;
+import io.lettuce.core.api.reactive.RedisStringReactiveCommands;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -43,6 +44,7 @@ import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.config.Config;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -59,22 +61,23 @@ public class RedisBenchmark {
     private Config config;
     private RedissonConnectionManager redisson;
     private LettuceConnectionManager lettuce;
-    //private StatefulRedisClusterConnection lettuceClient;
+    private JedisConnectionManager jedis;
     private static Integer redisGetCount = 0;
     private static Integer redisSetCount = 0;
     private static Integer lettuceAsyncGetCount = 0;
     private static Integer lettuceAsyncSetCount = 0;
     private static Integer lettuceReactiveGetCount = 0;
     private static Integer lettuceReactiveSetCount = 0;
+    private static Integer jedisGetCount = 0;
+    private static Integer jedisSetCount = 0;
 
     @Setup
     public void Setup() {
-
         Util.createBenchmarkKeys();
         redisson = RedissonConnectionManager.instance();
         lettuce = LettuceConnectionManager.instance();
+        jedis = JedisConnectionManager.instance();
     }
-
 
     @Benchmark
     public String SimpleGet() {
@@ -137,14 +140,14 @@ public class RedisBenchmark {
         }
         return result;
     }
-    /*
+
     @Benchmark
     public String lettuceSimpleReactiveGet() {
         if (lettuceReactiveGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
             lettuceReactiveGetCount = 0;
         }
         lettuceReactiveGetCount++;
-        RedisStringReactiveCommands<String, String> reactive = lettuceClient.reactive();
+        RedisStringReactiveCommands<String, String> reactive = lettuce.client().reactive();
         Mono<String> future = reactive.get(String.format(Util.KeyPrefix, lettuceReactiveGetCount));
         String result = null;
         try {
@@ -157,7 +160,7 @@ public class RedisBenchmark {
     @Benchmark
     public String lettuceSimpleReactiveSet() {
         lettuceReactiveSetCount++;
-        RedisStringReactiveCommands<String, String> reactive = lettuceClient.reactive();
+        RedisStringReactiveCommands<String, String> reactive = lettuce.client().reactive();
         Mono<String> future = reactive.set(String.format("lettuceSetReactive%s", lettuceReactiveSetCount), lettuceReactiveSetCount.toString());
         String result = null;
         try {
@@ -167,12 +170,39 @@ public class RedisBenchmark {
         }
         return result;
     }
-*/
+
+    @Benchmark
+    public String jedisSimpleGet() {
+        if (jedisGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
+            jedisGetCount = 0;
+        }
+        jedisGetCount++;
+        String result = null;
+        try {
+            result = jedis.client().get(String.format(Util.KeyPrefix, jedisGetCount));
+        } catch (Exception e) {
+            jedis = JedisConnectionManager.instance();
+        }
+        return result;
+    }
+    @Benchmark
+    public String jedisSimpleSet() {
+        jedisSetCount++;
+        String result = null;
+        try {
+            result = jedis.client().set(String.format("JedisSetTest%s", jedisSetCount), jedisSetCount.toString());
+        }  catch (Exception e) {
+            jedis = JedisConnectionManager.instance();
+        }
+        return result;
+    }
+
     @TearDown
     public void CloseConnection() {
         try {
             redisson.client().shutdown();
             lettuce.client().close();
+            jedis.client().close();
         }
         catch (Exception e) {
 

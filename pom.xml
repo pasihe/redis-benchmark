@@ -72,6 +72,14 @@ THE POSSIBILITY OF SUCH DAMAGE.
             <version>6.2.0.RELEASE</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>4.3.0-m1</version>
+        </dependency>
+
+
         <!-- not in use but avoid slf4j warnings -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
