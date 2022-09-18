@@ -82,7 +82,61 @@ $ java -jar target/benchmarks.jar JedisBench RedissonBench LettuceBench -f 1 -wi
 
 ### benchmark results
 
-upcoming
+
+```bash
+# Redis: version 6.2.6, cluster mode on, 3 shards (each 1 master + 3 replicas)
+# Managed AWS ElastiCache, cache.r6g.large, evenly distributed slots, all in eu-central-1c
+# Testbench: AWS EC2 c5.4xlarge, eu-central-1c, Ubuntu, 22.04 LTS, amd64 build on 2022-06-09
+       
+# JMH version: 1.35
+# VM version: JDK 17.0.4, OpenJDK 64-Bit Server VM, 17.0.4+8-Ubuntu-122.04
+# VM invoker: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+# VM options: <none>
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 2 s each
+# Measurement: 10 iterations, 1000 ms each
+# Timeout: 10 min per iteration
+# Threads: 16 threads, will synchronize iterations
+# Benchmark mode: Average time, time/op
+
+Benchmark                           Mode  Cnt    Score     Error   Units  Remarks
+JedisBench.jedisGet                thrpt   10   77.838 ±   4.467  ops/ms
+JedisBench.jedisSet                thrpt   10   66.187 ±   4.990  ops/ms
+LettuceBench.lettuceAsyncGet       thrpt   10   69.687 ±   6.275  ops/ms
+LettuceBench.lettuceAsyncSet       thrpt   10   66.807 ±   3.221  ops/ms
+LettuceBench.lettuceBatchGet*      thrpt   10  521.079 ±  13.565  ops/ms
+LettuceBench.lettuceBatchSet*      thrpt   10  476.253 ±  61.734  ops/ms  @OperationsPerInvocation(20)
+LettuceBench.lettucePipelineGet    thrpt   10  415.331 ±  46.365  ops/ms  @OperationsPerInvocation(20)
+LettuceBench.lettucePipelineSet    thrpt   10  378.050 ±  33.331  ops/ms  @OperationsPerInvocation(20)
+LettuceBench.lettuceReactiveGet    thrpt   10   67.951 ±   4.359  ops/ms
+LettuceBench.lettuceReactiveSet    thrpt   10   68.362 ±   5.626  ops/ms
+RedissonBench.redissonAsyncGet     thrpt   10   79.850 ±   3.034  ops/ms
+RedissonBench.redissonAsyncSet     thrpt   10   64.007 ±   1.588  ops/ms
+RedissonBench.redissonBatchGet     thrpt   10  817.777 ±  11.803  ops/ms  @OperationsPerInvocation(20)
+RedissonBench.redissonBatchSet     thrpt   10  528.582 ± 120.914  ops/ms  @OperationsPerInvocation(20)
+RedissonBench.redissonGet          thrpt   10   79.472 ±   3.708  ops/ms
+RedissonBench.redissonReactiveGet  thrpt   10   77.451 ±   3.281  ops/ms
+RedissonBench.redissonReactiveSet  thrpt   10   64.160 ±   3.212  ops/ms
+RedissonBench.redissonSet          thrpt   10   63.860 ±   3.325  ops/ms
+JedisBench.jedisGet                 avgt   10    0.191 ±   0.006   ms/op
+JedisBench.jedisSet                 avgt   10    0.210 ±   0.010   ms/op
+LettuceBench.lettuceAsyncGet        avgt   10    0.232 ±   0.016   ms/op
+LettuceBench.lettuceAsyncSet        avgt   10    0.249 ±   0.023   ms/op
+LettuceBench.lettuceBatchGet        avgt   10    0.030 ±   0.001   ms/op  @OperationsPerInvocation(20)
+LettuceBench.lettuceBatchSet        avgt   10    0.031 ±   0.005   ms/op  @OperationsPerInvocation(20)
+LettuceBench.lettucePipelineGet     avgt   10    0.042 ±   0.002   ms/op  @OperationsPerInvocation(20)
+LettuceBench.lettucePipelineSet     avgt   10    0.043 ±   0.003   ms/op  @OperationsPerInvocation(20)
+LettuceBench.lettuceReactiveGet     avgt   10    0.248 ±   0.019   ms/op
+LettuceBench.lettuceReactiveSet     avgt   10    0.241 ±   0.017   ms/op
+RedissonBench.redissonAsyncGet      avgt   10    0.205 ±   0.005   ms/op
+RedissonBench.redissonAsyncSet      avgt   10    0.255 ±   0.014   ms/op
+RedissonBench.redissonBatchGet      avgt   10    0.019 ±   0.001   ms/op  @OperationsPerInvocation(20)
+RedissonBench.redissonBatchSet      avgt   10    0.025 ±   0.003   ms/op  @OperationsPerInvocation(20)
+RedissonBench.redissonGet           avgt   10    0.210 ±   0.007   ms/op
+RedissonBench.redissonReactiveGet   avgt   10    0.203 ±   0.005   ms/op
+RedissonBench.redissonReactiveSet   avgt   10    0.249 ±   0.005   ms/op
+RedissonBench.redissonSet           avgt   10    0.245 ±   0.010   ms/op
+```
 
 ---
 
