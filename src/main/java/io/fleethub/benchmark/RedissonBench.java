@@ -172,6 +172,31 @@ public class RedissonBench {
         return result;
     }
 
+    @Benchmark
+    @OperationsPerInvocation(20)
+    public int redissonBatchSet() {
+        redissonBatchSetCount++;
+        int pipelineSize = 20;
+        int result = 0;
+        try {
+            RBatch batch = redisson.client().createBatch(BatchOptions.defaults());
+            List<RFuture<Void>> futures = new ArrayList<>();
+            for (int i=0;i<pipelineSize;i++) {
+                redissonBatchSetCount++;
+                RBucketAsync<String> bucket = batch.getBucket(
+                        String.format("RedissonBatchSetTest%s", redissonBatchSetCount), StringCodec.INSTANCE);
+                futures.add(bucket.setAsync(redissonBatchSetCount.toString()));
+            }
+            RFuture<BatchResult<?>> resFuture = batch.executeAsync();
+            List<?> responses = resFuture.get().getResponses();
+            result = responses.size();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
     @TearDown
     public void CloseConnection() {
         try {

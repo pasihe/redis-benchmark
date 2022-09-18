@@ -8,7 +8,7 @@ https://github.com/openjdk/jmh
 - Jedis (v4.3.0-m1)
   - JedisBench.jedisGet             
   - JedisBench.jedisSet
-  - _more to come when batch and pipeline for cluster is supported by Jedis_
+  - _more to come when batch and pipeline operations for cluster will be implemented in Jedis. https://github.com/redis/jedis/pull/1455_
 - Lettuce (v6.2.0)
   - LettuceBench.lettuceAsyncGet        
   - LettuceBench.lettuceAsyncSet        
@@ -243,3 +243,4 @@ Usage: java -jar ... [regexp*] [options]
 5. [Optimize Redis Client Performance for Amazon ElastiCache](https://aws.amazon.com/blogs/database/optimize-redis-client-performance-for-amazon-elasticache/)
 6. [Choosing the correct instance type and size for ElastiCache](https://aws.amazon.com/premiumsupport/knowledge-center/elasticache-redis-cluster-instance-type/)
 7. [JMH benchmark, how can I use it to test mongodb's data load performance](https://www.mo4tech.com/jmh-benchmark-how-can-i-use-it-to-test-mongodbs-data-load-performance.html)
+8. [Redisson Additional Features](https://github.com/redisson/redisson/wiki/10.-additional-features)
