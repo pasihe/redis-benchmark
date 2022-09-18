@@ -104,8 +104,8 @@ JedisBench.jedisGet                thrpt   10   77.838 ±   4.467  ops/ms
 JedisBench.jedisSet                thrpt   10   66.187 ±   4.990  ops/ms
 LettuceBench.lettuceAsyncGet       thrpt   10   69.687 ±   6.275  ops/ms
 LettuceBench.lettuceAsyncSet       thrpt   10   66.807 ±   3.221  ops/ms
-LettuceBench.lettuceBatchGet*      thrpt   10  521.079 ±  13.565  ops/ms
-LettuceBench.lettuceBatchSet*      thrpt   10  476.253 ±  61.734  ops/ms  @OperationsPerInvocation(20)
+LettuceBench.lettuceBatchGet       thrpt   10  521.079 ±  13.565  ops/ms  @OperationsPerInvocation(20)
+LettuceBench.lettuceBatchSet       thrpt   10  476.253 ±  61.734  ops/ms  @OperationsPerInvocation(20)
 LettuceBench.lettucePipelineGet    thrpt   10  415.331 ±  46.365  ops/ms  @OperationsPerInvocation(20)
 LettuceBench.lettucePipelineSet    thrpt   10  378.050 ±  33.331  ops/ms  @OperationsPerInvocation(20)
 LettuceBench.lettuceReactiveGet    thrpt   10   67.951 ±   4.359  ops/ms
