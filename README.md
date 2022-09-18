@@ -97,7 +97,7 @@ $ java -jar target/benchmarks.jar JedisBench RedissonBench LettuceBench -f 1 -wi
 # Measurement: 10 iterations, 1000 ms each
 # Timeout: 10 min per iteration
 # Threads: 16 threads, will synchronize iterations
-# Benchmark mode: Average time, time/op
+# Benchmark modes: Throughput time (ops/time), Average time (time/op)
 
 Benchmark                           Mode  Cnt    Score     Error   Units  Remarks
 JedisBench.jedisGet                thrpt   10   77.838 ±   4.467  ops/ms
