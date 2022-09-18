@@ -1,4 +1,4 @@
-package org.sample;
+package io.fleethub.utils;
 
 
 import java.io.File;
@@ -59,7 +59,7 @@ public final class BenchmarkConfiguration {
         return redisConnection.contains("sentinel");
     }
 
-    List<SimpleUri> getRedisUris() {
+    public List<SimpleUri> getRedisUris() {
         String redisConnection = getConnectionString();
         redisConnection = redisConnection.replace("redis-sentinel://", "")
                 .replace("redis://", "");

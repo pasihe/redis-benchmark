@@ -1,9 +1,10 @@
-package org.sample;
+package io.fleethub.clients;
 
 import org.redisson.Redisson;
-import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import io.fleethub.utils.BenchmarkConfiguration;
+import io.fleethub.utils.SimpleUri;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 public final class RedissonConnectionManager {
 
     private static RedissonConnectionManager connectionManager;
-    private RedissonClient client;
+    private static RedissonClient client;
 
     private RedissonClient createConnection() {
         List<SimpleUri> uris = BenchmarkConfiguration.get().getRedisUris();
@@ -21,7 +22,7 @@ public final class RedissonConnectionManager {
         Config config = new Config();
         config.setNettyThreads(0);
         config.useClusterServers().addNodeAddress(nodeAddresses.toArray(new String[nodeAddresses.size()]));
-        client = Redisson.create(config);
+        this.client = Redisson.create(config);
         return client;
     }
 
@@ -34,10 +35,14 @@ public final class RedissonConnectionManager {
      * @return RedissonConnectionManager
      */
     public static RedissonConnectionManager instance() {
-        if(connectionManager==null) {
+        if(connectionManager==null || connectionManager.client().isShutdown()) {
             connectionManager = new RedissonConnectionManager();
             connectionManager.createConnection();
         }
         return connectionManager;
+    }
+
+    public void reconnect() {
+        connectionManager.createConnection();
     }
 }

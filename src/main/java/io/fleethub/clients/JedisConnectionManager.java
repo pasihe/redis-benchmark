@@ -1,11 +1,7 @@
-package org.sample;
+package io.fleethub.clients;
 
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.async.RedisStringAsyncCommands;
-import io.lettuce.core.cluster.ClusterClientOptions;
-import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
-import io.lettuce.core.cluster.RedisClusterClient;
-import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.fleethub.utils.BenchmarkConfiguration;
+import io.fleethub.utils.SimpleUri;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
@@ -14,7 +10,6 @@ import redis.clients.jedis.JedisSentinelPool;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public final class JedisConnectionManager {
     private static JedisConnectionManager connectionManager;

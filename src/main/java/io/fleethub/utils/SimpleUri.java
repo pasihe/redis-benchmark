@@ -1,4 +1,4 @@
-package org.sample;
+package io.fleethub.utils;
 
 public class SimpleUri {
 

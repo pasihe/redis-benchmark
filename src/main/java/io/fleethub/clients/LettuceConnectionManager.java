@@ -1,4 +1,4 @@
-package org.sample;
+package io.fleethub.clients;
 
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.async.RedisStringAsyncCommands;
@@ -6,9 +6,8 @@ import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
+import io.fleethub.utils.BenchmarkConfiguration;
+import io.fleethub.utils.SimpleUri;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +46,7 @@ public final class LettuceConnectionManager {
      * @return LettuceConnectionManager
      */
     public static LettuceConnectionManager instance() {
-        if(connectionManager==null) {
+        if(connectionManager==null || connectionManager.client().isOpen()==false) {
             connectionManager = new LettuceConnectionManager();
             connectionManager.createConnection();
         }
