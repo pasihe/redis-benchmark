@@ -1,6 +1,8 @@
 package io.fleethub.benchmark;
 
 import io.fleethub.clients.RedissonConnectionManager;
+import io.fleethub.utils.BenchmarkConfiguration;
+import io.fleethub.utils.KeyGenerator;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -8,20 +10,19 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.redisson.api.*;
 import org.redisson.client.codec.StringCodec;
-import io.fleethub.utils.BenchmarkConfiguration;
-import io.fleethub.utils.KeyGenerator;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@BenchmarkMode({Mode.Throughput, Mode.AverageTime})
+@BenchmarkMode({Mode.Throughput})
 @Warmup(iterations = 1)
 @Threads(1)
-@State(Scope.Benchmark)
+@State(Scope.Thread)
 @Measurement(iterations = 1, time = 1000, timeUnit = TimeUnit.MILLISECONDS)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Timeout(time = 30, timeUnit = TimeUnit.SECONDS)
 public class RedissonBench {
 
     private RedissonConnectionManager redisson;
@@ -33,11 +34,18 @@ public class RedissonBench {
     private static Integer redissonReactiveSetCount = 0;
     private static Integer redissonBatchGetCount = 0;
     private static Integer redissonBatchSetCount = 0;
+    private static Integer redissonObjectMapLocalCacheGetCount=0;
 
-    @Setup
-    public void Setup() {
+    @Setup()
+    public void MainSetup() {
         KeyGenerator.createBenchmarkKeys();
-        redisson = RedissonConnectionManager.instance();
+        KeyGenerator.createBenchmarkMaps();
+    }
+
+    @Setup(Level.Trial)
+    public void InstantiateClientForBenchmark() {
+        redisson = new RedissonConnectionManager();
+        redisson.connect();
     }
 
     @Benchmark
@@ -197,13 +205,25 @@ public class RedissonBench {
         return result;
     }
 
-    @TearDown
-    public void CloseConnection() {
-        try {
-            redisson.client().shutdown();
+    @Benchmark
+    public List<String> redissonObjectMapLocalCacheGet() {
+        if (redissonObjectMapLocalCacheGetCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
+            redissonObjectMapLocalCacheGetCount = 0;
         }
-        catch (Exception e) {
+        List<String> result = null;
+        redissonObjectMapLocalCacheGetCount++;
+        try {
+            result = redisson.getLocalCachedMap().get(String.format(KeyGenerator.MapKeyPrefix, redissonObjectMapLocalCacheGetCount));
+        }  catch (Exception e) {
             e.printStackTrace();
+        }
+        return result;
+    }
+
+    @TearDown(Level.Trial)
+    public void CloseConnection() {
+        if (redisson != null && redisson.client()!=null) {
+            redisson.client().shutdown();
         }
     }
 
@@ -212,7 +232,7 @@ public class RedissonBench {
 
         Options options = new OptionsBuilder()
                 .include(RedissonBench.class.getSimpleName())
-                .forks(0)
+                .forks(1)
                 .build();
         new Runner(options).run();
     }

@@ -2,26 +2,30 @@ package io.fleethub.utils;
 
 import io.fleethub.clients.RedissonConnectionManager;
 import org.redisson.api.RBucket;
+import org.redisson.api.RLocalCachedMap;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class KeyGenerator {
     public static final String KeyPrefix = "Benchmark%s";
+    public static final String MapKeyPrefix = "BenchmarkMap%s";
     private static final String BenchmarkKeysCreated = "BenchmarkKeysCreated";
+    private static final String BenchmarkMapsCreated = "BenchmarkMapsCreated";
 
     public static void createBenchmarkKeys() {
 
+
+        RedissonConnectionManager redisson = new RedissonConnectionManager();
+        redisson.connect();
         try {
-            if(RedissonConnectionManager.instance().client() instanceof RedissonClient==false
-                    || RedissonConnectionManager.instance().client().isShutdown()) {
-                RedissonConnectionManager.instance().reconnect();
-            }
-            RBucket<String> bucket = RedissonConnectionManager.instance().client().getBucket(
+            RBucket<String> bucket = redisson.client().getBucket(
                     BenchmarkKeysCreated, StringCodec.INSTANCE);
             String keysCreated = bucket.get();
             if (keysCreated != null && keysCreated.equals("y")) {
+                redisson.client().shutdown();
                 return;
             }
 
@@ -30,10 +34,10 @@ public class KeyGenerator {
             for (int i = 0; i <= amountOfKeys; i++) {
                 progressPercentage(i, amountOfKeys);
                 String keyName = String.format(KeyGenerator.KeyPrefix, i);
-                RBucket<String> keyBucket = RedissonConnectionManager.instance().client().getBucket(keyName, StringCodec.INSTANCE);
+                RBucket<String> keyBucket = redisson.client().getBucket(keyName, StringCodec.INSTANCE);
                 keyBucket.set(data);
             }
-            RBucket<String> expirationBucket = RedissonConnectionManager.instance().client().getBucket(BenchmarkKeysCreated, StringCodec.INSTANCE);
+            RBucket<String> expirationBucket = redisson.client().getBucket(BenchmarkKeysCreated, StringCodec.INSTANCE);
             expirationBucket.set("y", 28800, TimeUnit.SECONDS);
         }
         catch(Exception e) {
@@ -42,7 +46,47 @@ public class KeyGenerator {
         finally {
             try {
 
-                RedissonConnectionManager.instance().client().shutdown();
+                redisson.client().shutdown();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public static void createBenchmarkMaps() {
+
+
+        RedissonConnectionManager redisson = new RedissonConnectionManager();
+        redisson.connect();
+        try {
+            RBucket<String> bucket = redisson.client().getBucket(
+                    BenchmarkMapsCreated, StringCodec.INSTANCE);
+            String keysCreated = bucket.get();
+            if (keysCreated != null && keysCreated.equals("y")) {
+                redisson.client().shutdown();
+                return;
+            }
+
+            String data = BenchmarkConfiguration.get().getKeyContentData();
+            Integer amountOfKeys = BenchmarkConfiguration.get().getAmountOfKeys();
+            RLocalCachedMap<String,List<String>> map = redisson.getLocalCachedMap();
+            for (int i = 0; i <= amountOfKeys; i++) {
+                progressPercentage(i, amountOfKeys);
+                String keyName = String.format(KeyGenerator.MapKeyPrefix, i);
+                map.fastPut(keyName,List.of("1","2","3","4","5"));
+            }
+            RBucket<String> expirationBucket = redisson.client().getBucket(BenchmarkMapsCreated, StringCodec.INSTANCE);
+            expirationBucket.set("y", 28800, TimeUnit.SECONDS);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+
+                redisson.client().shutdown();
             }
             catch (Exception e) {
                 e.printStackTrace();
