@@ -13,8 +13,11 @@ import org.redisson.client.codec.StringCodec;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @BenchmarkMode({Mode.Throughput})
 @Warmup(iterations = 1)
@@ -35,10 +38,13 @@ public class RedissonBench {
     private static Integer redissonBatchGetCount = 0;
     private static Integer redissonBatchSetCount = 0;
     private static Integer redissonObjectMapLocalCacheGetCount=0;
+    private static Integer redissonGetMultiValueKeyCount = 0;
+    private static Integer redissonGetSetMultiValueKeyCount = 0;
 
     @Setup()
     public void MainSetup() {
         KeyGenerator.createBenchmarkKeys();
+        KeyGenerator.createExtraBenchmarkKeys();
         KeyGenerator.createBenchmarkMaps();
     }
 
@@ -215,6 +221,39 @@ public class RedissonBench {
         try {
             result = redisson.getLocalCachedMap().get(String.format(KeyGenerator.MapKeyPrefix, redissonObjectMapLocalCacheGetCount));
         }  catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Benchmark
+    public List<String> redissonGetMultiValueKey() {
+        if (redissonGetMultiValueKeyCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
+            redissonGetMultiValueKeyCount = 0;
+        }
+        redissonGetMultiValueKeyCount++;
+        List<String> result = null;
+        try {
+            RBucket<List<String>> bucket = redisson.client().getBucket(
+                    String.format(KeyGenerator.ExtraKeyPrefix, redissonGetMultiValueKeyCount));
+            result = bucket.get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    @Benchmark
+    public List<String> redissonGetSetMultiValueKey() {
+        if (redissonGetSetMultiValueKeyCount >= BenchmarkConfiguration.get().getAmountOfKeys()) {
+            redissonGetSetMultiValueKeyCount = 0;
+        }
+        redissonGetSetMultiValueKeyCount++;
+        List<String> result = null;
+        try {
+            RSet<String> set = redisson.client().getSet(
+                    String.format(KeyGenerator.ExtraKeyPrefix, redissonGetSetMultiValueKeyCount));
+            result = set.readAll().stream().collect(Collectors.toList());
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return result;

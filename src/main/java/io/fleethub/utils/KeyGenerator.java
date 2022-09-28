@@ -3,17 +3,22 @@ package io.fleethub.utils;
 import io.fleethub.clients.RedissonConnectionManager;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLocalCachedMap;
+import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class KeyGenerator {
     public static final String KeyPrefix = "Benchmark%s";
+
+    public static final String ExtraKeyPrefix = "Benchmark:%s";
     public static final String MapKeyPrefix = "BenchmarkMap%s";
     private static final String BenchmarkKeysCreated = "BenchmarkKeysCreated";
     private static final String BenchmarkMapsCreated = "BenchmarkMapsCreated";
+    private static final String ExtraBenchmarkKeysCreated = "ExtraBenchmarkKeysCreated";
 
     public static void createBenchmarkKeys() {
 
@@ -127,4 +132,48 @@ public class KeyGenerator {
         }
     }
 
+    public static void createExtraBenchmarkKeys() {
+        RedissonConnectionManager redisson = new RedissonConnectionManager();
+        redisson.connect();
+        try {
+            RBucket<String> bucket = redisson.client().getBucket(
+                    ExtraBenchmarkKeysCreated);
+            String keysCreated = bucket.get();
+            if (keysCreated != null && keysCreated.equals("y")) {
+                redisson.client().shutdown();
+                return;
+            }
+
+            Integer amountOfKeys = BenchmarkConfiguration.get().getAmountOfKeys();
+            for (int i = 0; i <= amountOfKeys; i++) {
+                progressPercentage(i, amountOfKeys);
+                String keyName = String.format(KeyGenerator.KeyPrefix, i);
+                List<String> uuids = List.of(
+                        UUID.randomUUID().toString(),
+                        UUID.randomUUID().toString(),
+                        UUID.randomUUID().toString(),
+                        UUID.randomUUID().toString(),
+                        UUID.randomUUID().toString()
+                );
+                RBucket<List<String>> keyBucket = redisson.client().getBucket(keyName);
+                keyBucket.set(uuids);
+                RSet<String> keySet = redisson.client().getSet(keyName);
+                keySet.addAll(uuids);
+            }
+            RBucket<String> expirationBucket = redisson.client().getBucket(BenchmarkKeysCreated, StringCodec.INSTANCE);
+            expirationBucket.set("y", 28800, TimeUnit.SECONDS);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+
+                redisson.client().shutdown();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
