@@ -43,9 +43,9 @@ public class RedissonBench {
 
     @Setup()
     public void MainSetup() {
-        KeyGenerator.createBenchmarkKeys();
+        //KeyGenerator.createBenchmarkKeys();
         KeyGenerator.createExtraBenchmarkKeys();
-        KeyGenerator.createBenchmarkMaps();
+        //KeyGenerator.createBenchmarkMaps();
     }
 
     @Setup(Level.Trial)
@@ -251,7 +251,7 @@ public class RedissonBench {
         List<String> result = null;
         try {
             RSet<String> set = redisson.client().getSet(
-                    String.format(KeyGenerator.ExtraKeyPrefix, redissonGetSetMultiValueKeyCount));
+                    String.format(KeyGenerator.ExtraKeySetPrefix, redissonGetSetMultiValueKeyCount));
             result = set.readAll().stream().collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
